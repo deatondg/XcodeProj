@@ -170,6 +170,5 @@ final class PBXFileElementTests: XCTestCase {
                 }
             }
         }
-        
     }
 }
