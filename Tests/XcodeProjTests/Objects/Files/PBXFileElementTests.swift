@@ -150,7 +150,7 @@ final class PBXFileElementTests: XCTestCase {
             let xcodeProj = try XcodeProj(path: fixturesPath() + "iOS/Project.xcodeproj")
             let pbxproj = xcodeProj.pbxproj
             
-            let filesArray = pbxproj.fileReferences + pbxproj.groups + pbxproj.variantGroups
+            let filesArray: [PBXFileElement] = pbxproj.fileReferences + pbxproj.groups + pbxproj.variantGroups
             
             var filesSet: Set<PBXFileElement> = []
             filesSet.formUnion(filesArray)
@@ -163,7 +163,7 @@ final class PBXFileElementTests: XCTestCase {
                 }
             }
             for file in filesSet {
-                if filesArray.contains(file) {
+                if !filesArray.contains(file) {
                     XCTFail("""
                     PBXFileElement's implementation of Hashable is broken somehow.
                     """)
