@@ -143,4 +143,33 @@ final class PBXFileElementTests: XCTestCase {
             """)
         }
     }
+    
+    func test_canBeUsedInASet() throws {
+        // Run this a bunch of times because the hasher seed changes each time
+        for _ in 0...300 {
+            let xcodeProj = try XcodeProj(path: fixturesPath() + "iOS/Project.xcodeproj")
+            let pbxproj = xcodeProj.pbxproj
+            
+            let filesArray = pbxproj.fileReferences + pbxproj.groups + pbxproj.variantGroups
+            
+            var filesSet: Set<PBXFileElement> = []
+            filesSet.formUnion(filesArray)
+            
+            for file in filesArray {
+                if !filesSet.contains(file) {
+                    XCTFail("""
+                    PBXFileElement's implementation of Hashable is broken somehow.
+                    """)
+                }
+            }
+            for file in filesSet {
+                if filesArray.contains(file) {
+                    XCTFail("""
+                    PBXFileElement's implementation of Hashable is broken somehow.
+                    """)
+                }
+            }
+        }
+        
+    }
 }
