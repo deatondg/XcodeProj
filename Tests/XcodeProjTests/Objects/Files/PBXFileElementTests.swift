@@ -143,6 +143,21 @@ final class PBXFileElementTests: XCTestCase {
             """)
         }
     }
+        
+    func test_equalImpliesEqualHash() throws {
+        let xcodeProj = try XcodeProj(path: fixturesPath() + "iOS/Project.xcodeproj")
+        let pbxproj = xcodeProj.pbxproj
+        
+        let files = pbxproj.fileReferences
+        
+        for file1 in files {
+            for file2 in files {
+                if file1 == file2 {
+                    XCTAssert(file1.hashValue == file2.hashValue, "PBXFileReference violates Hashable's requirements. Equal file references have unequal hashes.")
+                }
+            }
+        }
+    }
     
     func test_canBeUsedInASet() throws {
         // Run this a bunch of times because the hasher seed changes each time
@@ -150,24 +165,37 @@ final class PBXFileElementTests: XCTestCase {
             let xcodeProj = try XcodeProj(path: fixturesPath() + "iOS/Project.xcodeproj")
             let pbxproj = xcodeProj.pbxproj
             
-            let filesArray: [PBXFileElement] = pbxproj.fileReferences + pbxproj.groups + pbxproj.variantGroups
+            //let filesArray: [PBXFileElement] = pbxproj.fileReferences + pbxproj.fileReferences + pbxproj.groups + pbxproj.variantGroups
+            let filesArray = pbxproj.fileReferences
             
-            var filesSet: Set<PBXFileElement> = []
-            filesSet.formUnion(filesArray)
-            
+            let hashes: [Int] = filesArray.map(\.hashValue)
+            let equations: [Bool] = filesArray.flatMap({ f in filesArray.map({ (f, $0) })}).map(==)
+                        
+            //var filesSet: Set<PBXFileElement> = []
+            var filesSet = Set<PBXFileReference>()
             for file in filesArray {
-                if !filesSet.contains(file) {
-                    XCTFail("""
-                    PBXFileElement's implementation of Hashable is broken somehow.
-                    """)
+                do {
+                    let newHashes: [Int] = filesArray.map(\.hashValue)
+                    let newEquations: [Bool] = filesArray.flatMap({ f in filesArray.map({ (f, $0 ) })}).map(==)
+                    XCTAssert(hashes == newHashes, "PBXFileReference hashValue seems non-constant!")
+                    XCTAssert(equations == newEquations, "PBXFileReference == seems non-constant!")
+                }
+                
+                filesSet.formUnion([file])
+                
+                do {
+                    let newHashes: [Int] = filesArray.map(\.hashValue)
+                    let newEquations: [Bool] = filesArray.flatMap({ f in filesArray.map({ (f, $0 ) })}).map(==)
+                    XCTAssert(hashes == newHashes, "PBXFileReference hashValue seems non-constant!")
+                    XCTAssert(equations == newEquations, "PBXFileReference == seems non-constant!")
                 }
             }
+            
+            for file in filesArray {
+                XCTAssert(filesSet.contains(file), "PBXFileElement's Hashable implementation is broken. Converting array to set lost an element.")
+            }
             for file in filesSet {
-                if !filesArray.contains(file) {
-                    XCTFail("""
-                    PBXFileElement's implementation of Hashable is broken somehow.
-                    """)
-                }
+                XCTAssert(filesArray.contains(file), "PBXFileElement's Hashable implementation is broken. Converting array to set apparently gains elements.")
             }
         }
     }
