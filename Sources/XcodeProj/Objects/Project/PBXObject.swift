@@ -60,8 +60,10 @@ public class PBXObject: Hashable, Decodable, Equatable, AutoEquatable {
         lhs.isEqual(to: rhs)
     }
 
-    @objc dynamic func isEqual(to _: Any?) -> Bool {
-        true
+    @objc dynamic func isEqual(to other: Any?) -> Bool {
+        //guard let other = other as? PBXObject else { return false }
+        //return self.reference == other.reference
+        return true
     }
 
     public func hash(into hasher: inout Hasher) {

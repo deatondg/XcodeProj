@@ -95,6 +95,7 @@ extension PBXFileElement {
         if indentWidth != rhs.indentWidth { return false }
         if tabWidth != rhs.tabWidth { return false }
         if wrapsLines != rhs.wrapsLines { return false }
+        //if parent != rhs.parent { return false }
         return super.isEqual(to: rhs)
     }
 }
